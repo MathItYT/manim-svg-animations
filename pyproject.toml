@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "manim-svg-animations"
+version = "0.1.0"
+description = ""
+authors = ["MathLike <mathlikeyt@gmail.com>"]
+readme = "README.md"
+packages = [{include = "manim_svg_animations"}]
+
+[tool.poetry.dependencies]
+python = "<3.12"
+manim = "^0.17.2"
+svgpathtools = "^1.6.0"
+
+[tool.poetry.plugins."manim.plugins"]
+"manim_svg_animations" = "manim_svg_animations"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
