@@ -79,9 +79,12 @@ class HTMLParsedVMobject:
         self.final_html_body = ""
         self.update_html()
         self.js_updates = ""
+        self.continue_updating = True
         self.scene.add_updater(self.updater)
     
     def updater(self, dt):
+        if self.continue_updating is False:
+            return
         svg_filename = self.filename_base + str(self.current_index) + ".svg"
         self.vmobject.to_svg(svg_filename)
         html_el_creations = ""
@@ -111,8 +114,7 @@ class HTMLParsedVMobject:
         )
     
     def finish(self):
-        if not hasattr(self, "interactive_js"):
-            self.scene.remove_updater(self.updater)
+        self.scene.remove_updater(self.updater)
         self.js_updates.removesuffix("\n")
         js_content = JAVASCRIPT_STRUCTURE % (self.filename_base, self.js_updates, 1000 * self.scene.renderer.time)
         if hasattr(self, "interactive_js"):
@@ -125,9 +127,11 @@ class HTMLParsedVMobject:
     def start_interactive(
         self,
         value_trackers: list[ValueTracker],
-        linspaces: list[np.ndarray]
+        linspaces: list[np.ndarray],
+        animate_this=True
     ):
-        self.scene.remove_updater(self.updater)
+        if animate_this is False:
+            self.continue_updating = False
         print("This process can be slow, please wait!")
         self.interactive_js = ""
         filename = "update.svg"
