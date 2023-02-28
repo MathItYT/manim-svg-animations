@@ -47,7 +47,7 @@ JAVASCRIPT_UPDATE_STRUCTURE = """    setTimeout(function() {
 JAVASCRIPT_INTERACTIVE_STRUCTURE = """var combsDict = {%s};
 var comb = [%s];
 function update(i, val) {
-var keys = Object.keys(combDict);
+var keys = Object.keys(combsDict);
 var ithElements = [];
 for (let arr of keys) {
     ithElements.push(arr[i])
@@ -138,6 +138,6 @@ class HTMLParsedVMobject:
             combs_dict += "[" + ", ".join([str(v) for v in comb]) + """]: () => {
                 %s
             },
-            """
+            """ % html_el_creations
             os.remove(filename)
         self.interactive_js += JAVASCRIPT_INTERACTIVE_STRUCTURE % (combs_dict, comb_now)
