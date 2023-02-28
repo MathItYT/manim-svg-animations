@@ -28,6 +28,9 @@ function render() {
     ready = false;
     svg = document.getElementById("%s");
 %s
+    setTimeout(function() {
+        ready = true;
+    }, %f)
 }"""
 
 
@@ -80,6 +83,6 @@ class HTMLParsedVMobject:
         self.scene.remove_updater(self.updater)
         self.js_updates.removesuffix("\n")
         with open(self.js_filename, "w") as f:
-            f.write(JAVASCRIPT_STRUCTURE % (self.filename_base, self.js_updates))
+            f.write(JAVASCRIPT_STRUCTURE % (self.filename_base, self.js_updates, 1000 * self.scene.renderer.time))
         with open(self.html_filename, "w") as f:
             f.write(self.html)
