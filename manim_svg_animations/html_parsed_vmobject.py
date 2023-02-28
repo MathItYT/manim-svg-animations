@@ -47,7 +47,14 @@ JAVASCRIPT_UPDATE_STRUCTURE = """    setTimeout(function() {
 JAVASCRIPT_INTERACTIVE_STRUCTURE = """var combsDict = {%s};
 var comb = [%s];
 function update(i, val) {
-comb[i] = val;
+var keys = Object.keys(combDict);
+var ithElements = [];
+for (let arr of keys) {
+    ithElements.push(arr[i])
+}
+var x = val;
+var closest = ithElements.sort( (a, b) => Math.abs(x - a) - Math.abs(x - b))[0];
+comb[i] = closest;
 combsDict[comb]();
 }
 """
