@@ -50,7 +50,12 @@ function update(i, val) {
 var keys = Object.keys(combsDict);
 var ithElements = [];
 for (let arr of keys) {
-    ithElements.push(arr[i])
+    if (Array.isArray(arr[i])) {   
+        ithElements.push(arr[i]);
+    }
+    else {
+        ithElements.push(arr);
+    }
 }
 var x = val;
 var closest = ithElements.sort( (a, b) => Math.abs(x - a) - Math.abs(x - b))[0];
@@ -100,7 +105,8 @@ class HTMLParsedVMobject:
         os.remove(svg_filename)
     
     def finish(self):
-        self.scene.remove_updater(self.updater)
+        if not hasattr(self, "interactive_js"):
+            self.scene.remove_updater(self.updater)
         self.js_updates.removesuffix("\n")
         js_content = JAVASCRIPT_STRUCTURE % (self.filename_base, self.js_updates, 1000 * self.scene.renderer.time)
         if hasattr(self, "interactive_js"):
@@ -115,6 +121,8 @@ class HTMLParsedVMobject:
         value_trackers: list[ValueTracker],
         linspaces: list[np.ndarray]
     ):
+        self.scene.remove_updater(self.updater)
+        print("This process can be slow, please wait!")
         self.interactive_js = ""
         filename = "update.svg"
         combs = itertools.product(*linspaces)
@@ -122,6 +130,7 @@ class HTMLParsedVMobject:
         comb_now = ", ".join([str(v.get_value()) for v in value_trackers])
         for comb in combs:
             for vt, val in zip(value_trackers, comb):
+                self.scene.wait(1/self.scene.camera.frame_rate)
                 vt.set_value(val)
             self.vmobject.to_svg(filename)
             html_el_creations = "svg.replaceChildren();\n"
@@ -139,5 +148,5 @@ class HTMLParsedVMobject:
                 %s
             },
             """ % html_el_creations
-            os.remove(filename)
         self.interactive_js += JAVASCRIPT_INTERACTIVE_STRUCTURE % (combs_dict, comb_now)
+        os.remove(filename)
