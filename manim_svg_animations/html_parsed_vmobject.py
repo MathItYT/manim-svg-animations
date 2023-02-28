@@ -20,7 +20,12 @@ HTML_STRUCTURE = """<!DOCTYPE html>
 </html>"""
 
 
-JAVASCRIPT_STRUCTURE = """function render() {
+JAVASCRIPT_STRUCTURE = """var ready = true;
+function render() {
+    if (!ready) {
+        return
+    }
+    ready = false;
     svg = document.getElementById("%s");
 %s
 }"""

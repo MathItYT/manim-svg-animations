@@ -14,6 +14,13 @@ from manim_svg_animations import *
 
 Secondly, create your scene. To change the background color to white, you must call `self.camera.background_color = WHITE`. You must create a VGroup which includes the all the VMobjects of the first animation. If the VGroup is called `vg`, then call `parsed = HTMLParsedVMobject(vg, self)` before playing the first animations. If the later animations will include more VMobjects, then simply add them to `vg`. When you finished the animations, don't forget to call `parsed.finish()`. There is an example below.
 ```python
+from manim import *
+from manim_svg_animations import *
+
+
+VMobject.set_default(color=BLACK)
+
+
 class SceneExample(Scene):
     def construct(self):
         self.camera.background_color = WHITE
@@ -58,3 +65,7 @@ class SceneExample(Scene):
 Then render your animation with `manim` command in your terminal. It's so important to add the flag `--disable_caching`. You will have an MP4 file with the Manim animation in your media folder and other two files in the directory of your Python file. Those two files are an HTML file and a JS file. Open the HTML file in your browser and open your browser's developer tools. Then go to console and call `render()`. You must see a SVG animation in your browser.
 
 Hooray! You've learned to use this plugin.
+
+## Notes
+
+This plugin is not intended to make a full website, it will only make the SVG animations in HTML. If you want to use this plugin to create a website with Manim animations, you can include the generated HTML and JS files in your website. If you have problems with the size of your animations, you must fix it with CSS.
