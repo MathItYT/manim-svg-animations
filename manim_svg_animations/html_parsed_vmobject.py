@@ -33,7 +33,7 @@ function render() {
 %s
     setTimeout(function() {
         ready = true;
-        rendered = false;
+        rendered = true;
     }, %f)
 }"""
 
@@ -47,6 +47,9 @@ JAVASCRIPT_UPDATE_STRUCTURE = """    setTimeout(function() {
 JAVASCRIPT_INTERACTIVE_STRUCTURE = """var combsDict = {%s};
 var comb = [%s];
 function update(i, val) {
+if (!rendered) {
+    return
+}
 var keys = Object.keys(combsDict);
 var ithElements = [];
 for (let arr of keys) {
@@ -74,15 +77,7 @@ class HTMLParsedVMobject:
         self.js_filename = self.filename_base + ".js"
         self.current_index = 0
         self.final_html_body = ""
-        self.html = HTML_STRUCTURE % (
-            self.filename_base,
-            self.filename_base,
-            self.scene.camera.pixel_width,
-            self.scene.camera.pixel_height,
-            self.scene.camera.background_color,
-            self.final_html_body,
-            self.js_filename
-        )
+        self.update_html()
         self.js_updates = ""
         self.scene.add_updater(self.updater)
     
@@ -103,6 +98,17 @@ class HTMLParsedVMobject:
         self.js_updates += "\n"
         self.current_index += 1
         os.remove(svg_filename)
+    
+    def update_html(self):
+        self.html = HTML_STRUCTURE % (
+            self.filename_base,
+            self.filename_base,
+            self.scene.camera.pixel_width,
+            self.scene.camera.pixel_height,
+            self.scene.camera.background_color,
+            self.final_html_body,
+            self.js_filename
+        )
     
     def finish(self):
         if not hasattr(self, "interactive_js"):
