@@ -14,7 +14,7 @@ HTML_STRUCTURE = """<!DOCTYPE html>
     <title>%s</title>
 </head>
 <body>
-    <svg id="%s" width="500px" viewbox="0 0 %d %d" style="background-color:%s;"></svg>
+    <svg id="%s" width="500px" viewBox="0 0 %d %d" style="background-color:%s;"></svg>
     %s
     <script src="%s"></script>
 </body>
@@ -80,6 +80,8 @@ class HTMLParsedVMobject:
         self.update_html()
         self.js_updates = ""
         self.continue_updating = True
+        self.original_frame_width = self.scene.camera.frame_width
+        self.original_frame_height = self.scene.camera.frame_height
         self.scene.add_updater(self.updater)
     
     def updater(self, dt):
@@ -97,18 +99,38 @@ class HTMLParsedVMobject:
             html_el_creation += f"       svg.appendChild(el{i});\n"
             html_el_creations += html_el_creation
             i += 1
+        background_color = color_to_int_rgba(self.scene.camera.background_color, self.scene.camera.background_opacity)
+        background_color = [str(par) for par in background_color]
+        html_el_creations += f"     svg.style.backgroundColor = 'rgb({', '.join(background_color)})';\n"
+        if isinstance(self.scene, MovingCameraScene):
+            frame = self.scene.camera.frame
+            frame_center = frame.get_center()
+            pixel_center = frame_center * self.scene.camera.pixel_width / self.original_frame_width
+            pixel_center[1] = -pixel_center[1]
+            pixel_center = pixel_center[:2]
+            pixel_width = self.scene.camera.pixel_width * self.scene.camera.frame_width / self.original_frame_width
+            pixel_height = self.scene.camera.pixel_height * self.scene.camera.frame_height / self.original_frame_height
+            arr = [*pixel_center, pixel_width, pixel_height]
+            arr = [str(p) for p in arr]
+            html_el_creations += f"     svg.setAttribute('viewBox', '{' '.join(arr)}');\n"
         self.js_updates += JAVASCRIPT_UPDATE_STRUCTURE % (html_el_creations, 1000 * self.scene.renderer.time)
         self.js_updates += "\n"
         self.current_index += 1
         os.remove(svg_filename)
     
     def update_html(self):
+        bg_color = color_to_int_rgba(
+            self.scene.camera.background_color,
+            self.scene.camera.background_opacity
+        )
+        bg_color = [str(c) for c in bg_color]
+        bg_color = f"rgb({', '.join(bg_color)})"
         self.html = HTML_STRUCTURE % (
             self.filename_base,
             self.filename_base,
             self.scene.camera.pixel_width,
             self.scene.camera.pixel_height,
-            self.scene.camera.background_color,
+            bg_color,
             self.final_html_body,
             self.js_filename
         )
