@@ -1,6 +1,7 @@
 from manim import *
 from manim_mobject_svg import *
 from svgpathtools import svg2paths
+import itertools
 import os
 
 
@@ -20,16 +21,19 @@ HTML_STRUCTURE = """<!DOCTYPE html>
 </html>"""
 
 
-JAVASCRIPT_STRUCTURE = """var ready = true;
+JAVASCRIPT_STRUCTURE = """var rendered = false;
+var ready = true;
+var svg = document.getElementById("%s");
 function render() {
     if (!ready) {
         return
     }
     ready = false;
-    svg = document.getElementById("%s");
+    rendered = false;
 %s
     setTimeout(function() {
         ready = true;
+        rendered = false;
     }, %f)
 }"""
 
@@ -38,6 +42,15 @@ JAVASCRIPT_UPDATE_STRUCTURE = """    setTimeout(function() {
         svg.replaceChildren();
         %s
     }, %f)"""
+
+
+JAVASCRIPT_INTERACTIVE_STRUCTURE = """var combsDict = {%s};
+var comb = [%s];
+function update(i, val) {
+comb[i] = val;
+combsDict[comb]();
+}
+"""
 
 
 class HTMLParsedVMobject:
@@ -82,7 +95,42 @@ class HTMLParsedVMobject:
     def finish(self):
         self.scene.remove_updater(self.updater)
         self.js_updates.removesuffix("\n")
+        js_content = JAVASCRIPT_STRUCTURE % (self.filename_base, self.js_updates, 1000 * self.scene.renderer.time)
+        if hasattr(self, "interactive_js"):
+            js_content += f"\n{self.interactive_js}"
         with open(self.js_filename, "w") as f:
-            f.write(JAVASCRIPT_STRUCTURE % (self.filename_base, self.js_updates, 1000 * self.scene.renderer.time))
+            f.write(js_content)
         with open(self.html_filename, "w") as f:
             f.write(self.html)
+    
+    def start_interactive(
+        self,
+        value_trackers: list[ValueTracker],
+        linspaces: list[np.ndarray]
+    ):
+        self.interactive_js = ""
+        filename = "update.svg"
+        combs = itertools.product(*linspaces)
+        combs_dict = ""
+        comb_now = ", ".join([str(v.get_value()) for v in value_trackers])
+        for comb in combs:
+            for vt, val in zip(value_trackers, comb):
+                vt.set_value(val)
+            self.vmobject.to_svg(filename)
+            html_el_creations = "svg.replaceChildren();\n"
+            _, attributes = svg2paths(filename)
+            i = 0
+            for attr in attributes:
+                html_el_creation = f"        var el{i} = document.createElementNS('http://www.w3.org/2000/svg', 'path');\n"            
+                for k, v in attr.items():
+                    html_el_creation += f"       el{i}.setAttribute('{k}', '{v}');\n"
+                html_el_creation += f"       svg.appendChild(el{i});\n"
+                html_el_creations += html_el_creation
+                i += 1
+            
+            combs_dict += "[" + ", ".join([str(v) for v in comb]) + """]: () => {
+                %s
+            },
+            """
+            os.remove(filename)
+        self.interactive_js += JAVASCRIPT_INTERACTIVE_STRUCTURE % (combs_dict, comb_now)
