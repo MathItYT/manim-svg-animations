@@ -110,6 +110,8 @@ class HTMLParsedVMobject:
             pixel_center = pixel_center[:2]
             pixel_width = self.scene.camera.pixel_width * self.scene.camera.frame_width / self.original_frame_width
             pixel_height = self.scene.camera.pixel_height * self.scene.camera.frame_height / self.original_frame_height
+            pixel_center[0] -= pixel_width / 2
+            pixel_center[1] -= pixel_height / 2
             arr = [*pixel_center, pixel_width, pixel_height]
             arr = [str(p) for p in arr]
             html_el_creations += f"     svg.setAttribute('viewBox', '{' '.join(arr)}');\n"
