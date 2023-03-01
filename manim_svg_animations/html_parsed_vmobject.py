@@ -139,7 +139,9 @@ class HTMLParsedVMobject:
     def finish(self):
         self.scene.remove_updater(self.updater)
         self.js_updates.removesuffix("\n")
-        js_content = JAVASCRIPT_STRUCTURE % (self.filename_base, self.js_updates, 1000 * self.scene.renderer.time)
+        if not hasattr(self, "last_t"):
+            self.last_t = self.scene.renderer.time
+        js_content = JAVASCRIPT_STRUCTURE % (self.filename_base, self.js_updates, 1000 * self.last_t)
         if hasattr(self, "interactive_js"):
             js_content += f"\n{self.interactive_js}"
         with open(self.js_filename, "w") as f:
@@ -155,6 +157,7 @@ class HTMLParsedVMobject:
     ):
         if animate_this is False:
             self.continue_updating = False
+            self.last_t = self.scene.renderer.time
         print("This process can be slow, please wait!")
         self.interactive_js = ""
         filename = "update.svg"
