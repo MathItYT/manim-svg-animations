@@ -14,7 +14,7 @@ HTML_STRUCTURE = """<!DOCTYPE html>
     <title>%s</title>
 </head>
 <body>
-    <svg id="%s" width="500px" viewBox="0 0 %d %d" style="background-color:%s;"></svg>
+    <svg id="%s" width="%s" viewBox="0 0 %d %d" style="background-color:%s;"></svg>
     %s
     <script src="%s"></script>
 </body>
@@ -69,7 +69,7 @@ combsDict[comb]();
 
 
 class HTMLParsedVMobject:
-    def __init__(self, vmobject: VMobject, scene: Scene):
+    def __init__(self, vmobject: VMobject, scene: Scene, width: float = "500px"):
         self.vmobject = vmobject
         self.scene = scene
         self.filename_base = scene.__class__.__name__
@@ -77,6 +77,7 @@ class HTMLParsedVMobject:
         self.js_filename = self.filename_base + ".js"
         self.current_index = 0
         self.final_html_body = ""
+        self.width = width
         self.update_html()
         self.js_updates = ""
         self.continue_updating = True
@@ -129,6 +130,7 @@ class HTMLParsedVMobject:
         self.html = HTML_STRUCTURE % (
             self.filename_base,
             self.filename_base,
+            self.width,
             self.scene.camera.pixel_width,
             self.scene.camera.pixel_height,
             bg_color,
