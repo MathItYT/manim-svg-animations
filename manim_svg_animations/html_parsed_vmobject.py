@@ -1,6 +1,7 @@
 from manim import *
 from manim_mobject_svg import *
 from svgpathtools import svg2paths
+from types import NoneType
 import itertools
 import os
 
@@ -11,10 +12,14 @@ HTML_STRUCTURE = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg-full.min.js" integrity="sha512-rt6EnxNkuTTgQX2397gLDTao/kZrmdNM4ZO7n89nX6KqOauwSQTGOq3shcd/oGyUc0czxMKBvj+gML8dxX4hAg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <title>%s</title>
 </head>
 <body>
-    <svg id="%s" width="%s" viewBox="0 0 %d %d" style="background-color:%s;"></svg>
+    <div>
+        <svg id="%s" width="%s" viewBox="0 0 %d %d" style="background-color:%s;"></svg>
+    </div>
+    <button onclick="render()">Render!</button>
     %s
     <script src="%s"></script>
 </body>
@@ -76,13 +81,12 @@ class HTMLParsedVMobject:
         self.html_filename = self.filename_base + ".html"
         self.js_filename = self.filename_base + ".js"
         self.current_index = 0
-        self.final_html_body = ""
         self.width = width
-        self.update_html()
         self.js_updates = ""
         self.continue_updating = True
         self.original_frame_width = self.scene.camera.frame_width
         self.original_frame_height = self.scene.camera.frame_height
+        self.interactive_html = ""
         self.scene.add_updater(self.updater)
     
     def updater(self, dt):
@@ -105,20 +109,35 @@ class HTMLParsedVMobject:
         html_el_creations += f"     svg.style.backgroundColor = 'rgb({', '.join(background_color)})';\n"
         if isinstance(self.scene, MovingCameraScene):
             frame = self.scene.camera.frame
-            pixel_width = self.scene.camera.pixel_width * self.scene.camera.frame_width / self.original_frame_width
-            pixel_height = self.scene.camera.pixel_height * self.scene.camera.frame_height / self.original_frame_height
-            frame_center = frame.get_corner(UL)
-            pixel_center = frame_center * self.scene.camera.pixel_width / self.original_frame_width
-            pixel_center += self.scene.camera.pixel_width / 2 * RIGHT + self.scene.camera.pixel_height / 2 * DOWN
-            pixel_center[1] = -pixel_center[1]
-            pixel_center = pixel_center[:2]
-            arr = [*pixel_center, pixel_width, pixel_height]
-            arr = [str(p) for p in arr]
-            html_el_creations += f"     svg.setAttribute('viewBox', '{' '.join(arr)}');\n"
+            frame_corner = frame.get_corner(UL)
+            html_el_creations = self.update_viewbox(
+                frame_corner,
+                self.scene.camera.frame_width,
+                self.scene.camera.frame_height,
+                html_el_creations
+            )
         self.js_updates += JAVASCRIPT_UPDATE_STRUCTURE % (html_el_creations, 1000 * self.scene.renderer.time)
         self.js_updates += "\n"
         self.current_index += 1
         os.remove(svg_filename)
+    
+    def update_viewbox(
+        self,
+        frame_corner: np.ndarray,
+        new_frame_width: float,
+        new_frame_height: float,
+        html_str: str
+    ):
+        pixel_width = self.scene.camera.pixel_width * new_frame_width / self.original_frame_width
+        pixel_height = self.scene.camera.pixel_height * new_frame_height / self.original_frame_height
+        pixel_center = frame_corner * self.scene.camera.pixel_width / self.original_frame_width
+        pixel_center += self.scene.camera.pixel_width / 2 * RIGHT + self.scene.camera.pixel_height / 2 * DOWN
+        pixel_center[1] = -pixel_center[1]
+        pixel_center = pixel_center[:2]
+        arr = [*pixel_center, pixel_width, pixel_height]
+        arr = [str(p) for p in arr]
+        html_str += f"     svg.setAttribute('viewBox', '{' '.join(arr)}');\n"
+        return html_str
     
     def update_html(self):
         bg_color = color_to_int_rgba(
@@ -134,12 +153,13 @@ class HTMLParsedVMobject:
             self.scene.camera.pixel_width,
             self.scene.camera.pixel_height,
             bg_color,
-            self.final_html_body,
+            self.interactive_html,
             self.js_filename
         )
     
     def finish(self):
         self.scene.remove_updater(self.updater)
+        self.update_html()
         self.js_updates.removesuffix("\n")
         if not hasattr(self, "last_t"):
             self.last_t = self.scene.renderer.time
@@ -155,11 +175,13 @@ class HTMLParsedVMobject:
         self,
         value_trackers: list[ValueTracker],
         linspaces: list[np.ndarray],
+        names: list[str] | NoneType = None,
         animate_this=True
     ):
         if animate_this is False:
             self.continue_updating = False
             self.last_t = self.scene.renderer.time
+            default_values = [vt.get_value() for vt in value_trackers]
         print("This process can be slow, please wait!")
         self.interactive_js = ""
         filename = "update.svg"
@@ -186,5 +208,19 @@ class HTMLParsedVMobject:
                 %s
             },
             """ % html_el_creations
+        if animate_this is True:
+            default_values = [vt.get_value() for vt in value_trackers]
+        self.interactive_html += "<div>\n"
+        for i, vt in enumerate(value_trackers):
+            if names is not None:
+                self.interactive_html += f'<label for="slider{i}"></label>\n'
+            linspace_ordered = linspaces[i].sort()
+            min_val = linspace_ordered[0]
+            max_val = linspace_ordered[-1]
+            step = linspace_ordered[1] - linspace_ordered[0]
+            val = default_values[i]
+            self.interactive_html += f'<input type="range" name="slider{i}" min="{min_val}" max="{max_val}"' \
+                + f' step="{step}" value="{val}" oninput="update({i}, this.value)">\n'
+        self.interactive_html += "</div>"
         self.interactive_js += JAVASCRIPT_INTERACTIVE_STRUCTURE % (combs_dict, comb_now)
         os.remove(filename)
