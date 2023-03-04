@@ -33,7 +33,7 @@ HTML_STRUCTURE = """<!DOCTYPE html>
 
 JAVASCRIPT_STRUCTURE = """var rendered = false;
 var ready = true;
-var svg = document.getElementById("%s");
+var %s = document.getElementById("%s");
 function render%s() {
     if (!ready) {
         render%s()
@@ -50,7 +50,7 @@ function render%s() {
 
 
 JAVASCRIPT_UPDATE_STRUCTURE = """    setTimeout(function() {
-        svg.replaceChildren();
+        %s.replaceChildren();
         %s
     }, %f)"""
 
@@ -124,7 +124,7 @@ class HTMLParsedVMobject:
                 self.scene.camera.frame_height,
                 html_el_creations
             )
-        self.js_updates += JAVASCRIPT_UPDATE_STRUCTURE % (html_el_creations, 1000 * self.scene.renderer.time)
+        self.js_updates += JAVASCRIPT_UPDATE_STRUCTURE % (self.filename_base.lower(), html_el_creations, 1000 * self.scene.renderer.time)
         self.js_updates += "\n"
         self.current_index += 1
         os.remove(svg_filename)
@@ -182,6 +182,7 @@ class HTMLParsedVMobject:
         if not hasattr(self, "last_t"):
             self.last_t = self.scene.renderer.time
         js_content = JAVASCRIPT_STRUCTURE % (
+            self.filename_base.lower(),
             self.filename_base,
             self.filename_base,
             self.filename_base,
