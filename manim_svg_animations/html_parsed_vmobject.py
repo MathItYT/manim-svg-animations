@@ -108,13 +108,13 @@ class HTMLParsedVMobject:
             html_el_creation = f"        var el{i} = document.createElementNS('http://www.w3.org/2000/svg', 'path');\n"            
             for k, v in attr.items():
                 html_el_creation += f"       el{i}.setAttribute('{k}', '{v}');\n"
-            html_el_creation += f"       svg.appendChild(el{i});\n"
+            html_el_creation += f"       {self.filename_base.lower()}.appendChild(el{i});\n"
             html_el_creations += html_el_creation
             i += 1
         background_color = color_to_int_rgba(self.scene.camera.background_color, self.scene.camera.background_opacity)
         background_color = [*[str(c) for c in background_color[:-1]], str(background_color[-1]/255)]
         background_color = [str(par) for par in background_color]
-        html_el_creations += f"     svg.style.backgroundColor = 'rgb({', '.join(background_color)})';\n"
+        html_el_creations += f"     {self.filename_base.lower()}.style.backgroundColor = 'rgb({', '.join(background_color)})';\n"
         if isinstance(self.scene, MovingCameraScene):
             frame = self.scene.camera.frame
             frame_corner = frame.get_corner(UL)
@@ -144,7 +144,7 @@ class HTMLParsedVMobject:
         pixel_center = pixel_center[:2]
         arr = [*pixel_center, pixel_width, pixel_height]
         arr = [str(p) for p in arr]
-        html_str += f"     svg.setAttribute('viewBox', '{' '.join(arr)}');\n"
+        html_str += f"     {self.filename_base.lower()}.setAttribute('viewBox', '{' '.join(arr)}');\n"
         return html_str
     
     def update_html(self):
@@ -218,14 +218,14 @@ class HTMLParsedVMobject:
                 self.scene.wait(1/self.scene.camera.frame_rate)
                 vt.set_value(val)
             self.vmobject.to_svg(filename)
-            html_el_creations = "svg.replaceChildren();\n"
+            html_el_creations = f"{self.filename_base.lower()}.replaceChildren();\n"
             _, attributes = svg2paths(filename)
             i = 0
             for attr in attributes:
                 html_el_creation = f"        var el{i} = document.createElementNS('http://www.w3.org/2000/svg', 'path');\n"            
                 for k, v in attr.items():
                     html_el_creation += f"       el{i}.setAttribute('{k}', '{v}');\n"
-                html_el_creation += f"       svg.appendChild(el{i});\n"
+                html_el_creation += f"       {self.filename_base.lower()}.appendChild(el{i});\n"
                 html_el_creations += html_el_creation
                 i += 1
             
