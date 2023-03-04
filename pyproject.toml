@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "manim-svg-animations"
-version = "0.2.13"
+version = "0.2.14"
 description = ""
 authors = ["MathLike <mathlikeyt@gmail.com>"]
 readme = "README.md"

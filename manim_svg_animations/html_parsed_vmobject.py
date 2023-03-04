@@ -112,6 +112,7 @@ class HTMLParsedVMobject:
             html_el_creations += html_el_creation
             i += 1
         background_color = color_to_int_rgba(self.scene.camera.background_color, self.scene.camera.background_opacity)
+        background_color = [*[str(c) for c in background_color[:-1]], str(background_color[-1]/255)]
         background_color = [str(par) for par in background_color]
         html_el_creations += f"     svg.style.backgroundColor = 'rgb({', '.join(background_color)})';\n"
         if isinstance(self.scene, MovingCameraScene):
