@@ -36,6 +36,8 @@ var ready = true;
 var %s = document.getElementById("%s");
 function render%s() {
     if (!ready) {
+        ready = true;
+        rendered = false;
         render%s()
         return
     }
