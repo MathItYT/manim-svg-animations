@@ -38,7 +38,9 @@ function render%s() {
     if (!ready) {
         ready = true;
         rendered = false;
-        render%s()
+        setTimeout(() => {
+            render%s()
+        }, %f);
         return
     }
     ready = false;
@@ -192,6 +194,7 @@ class HTMLParsedVMobject:
             self.filename_base,
             self.filename_base,
             self.filename_base,
+            1000 / self.scene.camera.frame_rate,
             self.js_updates,
             1000 * self.last_t
         )
