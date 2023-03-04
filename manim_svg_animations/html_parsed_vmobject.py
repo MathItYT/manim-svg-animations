@@ -106,8 +106,12 @@ class HTMLParsedVMobject:
         html_el_creations = ""
         _, attributes = svg2paths(svg_filename)
         i = 0
+        html_el_creation = """if (ready) {
+            return
+        };
+        """
         for attr in attributes:
-            html_el_creation = f"        var el{i} = document.createElementNS('http://www.w3.org/2000/svg', 'path');\n"            
+            html_el_creation += f"        var el{i} = document.createElementNS('http://www.w3.org/2000/svg', 'path');\n"            
             for k, v in attr.items():
                 html_el_creation += f"       el{i}.setAttribute('{k}', '{v}');\n"
             html_el_creation += f"       {self.filename_base.lower()}.appendChild(el{i});\n"
