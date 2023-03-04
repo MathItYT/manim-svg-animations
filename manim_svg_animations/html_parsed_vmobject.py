@@ -24,7 +24,7 @@ HTML_STRUCTURE = """<!DOCTYPE html>
     <div>
         <svg id="%s" width="%s" viewBox="0 0 %d %d" style="background-color:%s;"></svg>
     </div>
-    <button onclick="render()">Render!</button>
+    <button onclick="render%s()">Render!</button>
     %s
     <script src="%s"></script>
 </body>
@@ -160,6 +160,7 @@ class HTMLParsedVMobject:
                 self.scene.camera.pixel_width,
                 self.scene.camera.pixel_height,
                 bg_color,
+                self.filename_base,
                 self.interactive_html,
                 self.js_filename
             )
