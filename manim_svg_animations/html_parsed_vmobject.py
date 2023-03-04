@@ -104,7 +104,7 @@ class HTMLParsedVMobject:
         if self.continue_updating is False:
             return
         svg_filename = self.filename_base + str(self.current_index) + ".svg"
-        self.vmobject.to_svg(svg_filename) % self.filename_base
+        self.vmobject.to_svg(svg_filename)
         _, attributes = svg2paths(svg_filename)
         i = 0
         for attr in attributes:
