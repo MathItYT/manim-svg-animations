@@ -6,6 +6,11 @@ import itertools
 import os
 
 
+HTML_BASIC_STRUCTURE = """<div>
+    <svg id="%s" width="%s" viewBox="0 0 %d %d" style="background-color:%s;"></svg>
+</div>"""
+
+
 HTML_STRUCTURE = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,7 +79,7 @@ combsDict[comb]();
 
 
 class HTMLParsedVMobject:
-    def __init__(self, vmobject: VMobject, scene: Scene, width: float = "500px"):
+    def __init__(self, vmobject: VMobject, scene: Scene, width: float = "500px", basic_html: bool = False):
         self.vmobject = vmobject
         self.scene = scene
         self.filename_base = scene.__class__.__name__
@@ -82,6 +87,7 @@ class HTMLParsedVMobject:
         self.js_filename = self.filename_base + ".js"
         self.current_index = 0
         self.width = width
+        self.basic_html = basic_html
         self.js_updates = ""
         self.continue_updating = True
         self.original_frame_width = self.scene.camera.frame_width
@@ -146,16 +152,25 @@ class HTMLParsedVMobject:
         )
         bg_color = [str(c) for c in bg_color]
         bg_color = f"rgb({', '.join(bg_color)})"
-        self.html = HTML_STRUCTURE % (
-            self.filename_base,
-            self.filename_base,
-            self.width,
-            self.scene.camera.pixel_width,
-            self.scene.camera.pixel_height,
-            bg_color,
-            self.interactive_html,
-            self.js_filename
-        )
+        if self.basic_html is False:
+            self.html = HTML_STRUCTURE % (
+                self.filename_base,
+                self.filename_base,
+                self.width,
+                self.scene.camera.pixel_width,
+                self.scene.camera.pixel_height,
+                bg_color,
+                self.interactive_html,
+                self.js_filename
+            )
+        else:
+            self.html = HTML_BASIC_STRUCTURE % (
+                self.filename_base,
+                self.width,
+                self.scene.camera.pixel_width,
+                self.scene.camera.pixel_height,
+                bg_color
+            )
     
     def finish(self):
         self.scene.remove_updater(self.updater)
