@@ -38,14 +38,14 @@ function render%s() {
     if (!ready) {
         ready = true;
         rendered = false;
-        setTimeout(() => {
-            render%s()
-        }, %f);
+        setTimeout(render%s, %f);
         return
     }
     ready = false;
     rendered = false;
+while (!ready) {
 %s
+}
     setTimeout(function() {
         ready = true;
         rendered = true;
@@ -104,16 +104,11 @@ class HTMLParsedVMobject:
         if self.continue_updating is False:
             return
         svg_filename = self.filename_base + str(self.current_index) + ".svg"
-        self.vmobject.to_svg(svg_filename)
-        html_el_creations = ""
+        self.vmobject.to_svg(svg_filename) % self.filename_base
         _, attributes = svg2paths(svg_filename)
         i = 0
         for attr in attributes:
-            html_el_creation = """if (ready) {
-                return
-            };
-            """
-            html_el_creation += f"        var el{i} = document.createElementNS('http://www.w3.org/2000/svg', 'path');\n"            
+            html_el_creation = f"        var el{i} = document.createElementNS('http://www.w3.org/2000/svg', 'path');\n"            
             for k, v in attr.items():
                 html_el_creation += f"       el{i}.setAttribute('{k}', '{v}');\n"
             html_el_creation += f"       {self.filename_base.lower()}.appendChild(el{i});\n"
