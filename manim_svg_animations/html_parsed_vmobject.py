@@ -150,8 +150,8 @@ class HTMLParsedVMobject:
             self.scene.camera.background_color,
             self.scene.camera.background_opacity
         )
-        bg_color = [str(c) for c in bg_color]
-        bg_color = f"rgb({', '.join(bg_color)})"
+        bg_color = [*[str(c) for c in bg_color[:-1]], str(bg_color[-1]/255)]
+        bg_color = f"rgba({', '.join(bg_color)})"
         if self.basic_html is False:
             self.html = HTML_STRUCTURE % (
                 self.filename_base,
