@@ -187,7 +187,6 @@ class HTMLParsedVMobject:
             self.filename_base.lower(),
             self.filename_base,
             self.filename_base,
-            self.filename_base,
             1000 / self.scene.camera.frame_rate,
             self.js_updates
         )
