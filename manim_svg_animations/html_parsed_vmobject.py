@@ -31,31 +31,27 @@ HTML_STRUCTURE = """<!DOCTYPE html>
 </html>"""
 
 
-JAVASCRIPT_STRUCTURE = """var rendered = false;
+JAVASCRIPT_STRUCTURE = """function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+var rendered = false;
 var ready = true;
 var %s = document.getElementById("%s");
 function render%s() {
     if (!ready) {
         ready = true;
         rendered = false;
-        setTimeout(render%s, %f);
+        sleep(%f);
     }
     ready = false;
     rendered = false;
-while (!ready) {
 %s
-}
-    setTimeout(function() {
-        ready = true;
-        rendered = true;
-    }, %f)
+    ready = true;
+    rendered = true;
 }"""
-
-
-JAVASCRIPT_UPDATE_STRUCTURE = """    setTimeout(function() {
-        %s.replaceChildren();
-        %s
-    }, %f)"""
 
 
 JAVASCRIPT_INTERACTIVE_STRUCTURE = """var combsDict = {%s};
@@ -104,7 +100,10 @@ class HTMLParsedVMobject:
             return
         svg_filename = self.filename_base + str(self.current_index) + ".svg"
         self.vmobject.to_svg(svg_filename)
-        html_el_creations = ""
+        html_el_creations = """if (ready) {
+            return
+        }
+        %f.replaceChildren();""" % 1000 / self.scene.camera.frame_rate
         _, attributes = svg2paths(svg_filename)
         i = 0
         for attr in attributes:
@@ -127,7 +126,7 @@ class HTMLParsedVMobject:
                 self.scene.camera.frame_height,
                 html_el_creations
             )
-        self.js_updates += JAVASCRIPT_UPDATE_STRUCTURE % (self.filename_base.lower(), html_el_creations, 1000 * self.scene.renderer.time)
+        self.js_updates += f"{html_el_creations}\nsleep({1000 / self.scene.camera.frame_rate});\n"
         self.js_updates += "\n"
         self.current_index += 1
         os.remove(svg_filename)
@@ -190,8 +189,7 @@ class HTMLParsedVMobject:
             self.filename_base,
             self.filename_base,
             1000 / self.scene.camera.frame_rate,
-            self.js_updates,
-            1000 * self.last_t
+            self.js_updates
         )
         if hasattr(self, "interactive_js"):
             js_content += f"\n{self.interactive_js}"
