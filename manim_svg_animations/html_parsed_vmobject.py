@@ -103,7 +103,7 @@ class HTMLParsedVMobject:
         html_el_creations = """if (ready) {
             return
         }
-        %f.replaceChildren();""" % (1000 / self.scene.camera.frame_rate)
+        %s.replaceChildren();""" % self.filename_base.lower()
         _, attributes = svg2paths(svg_filename)
         i = 0
         for attr in attributes:
