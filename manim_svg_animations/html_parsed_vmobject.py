@@ -93,6 +93,7 @@ class HTMLParsedVMobject:
         self.original_frame_width = self.scene.camera.frame_width
         self.original_frame_height = self.scene.camera.frame_height
         self.interactive_html = ""
+        self.has_updates = False
         self.scene.add_updater(self.updater)
     
     def updater(self, dt):
@@ -126,7 +127,18 @@ class HTMLParsedVMobject:
                 self.scene.camera.frame_height,
                 html_el_creations
             )
-        self.js_updates += f"{html_el_creations}\nsleep({1000 / self.scene.camera.frame_rate});\n"
+        if self.has_updates is False:
+            self.js_updates += "%s\nsleep(%f).then(() => {\nTOREPLACE\n});" % (
+                html_el_creations,
+                1000 / self.scene.camera.frame_rate,  
+            )
+            self.last_update = True
+        else:
+            html_el_creations += "\nsleep(%f).then(() => {\nTOREPLACE\n});" % (
+                1000 / self.scene.camera.frame_rate
+            )
+            self.js_updates.replace("TOREPLACE", html_el_creations)
+            self.last_update = html_el_creations
         self.js_updates += "\n"
         self.current_index += 1
         os.remove(svg_filename)
