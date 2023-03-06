@@ -28,8 +28,8 @@ BASIC_HTML_STRUCTURE = """<div>
 
 JAVASCRIPT_STRUCTURE = """var rendered = false;
 var ready = true;
-var svg = document.getElementById("%s");
-function render() {
+var %s = document.getElementById("%s");
+function render%s() {
     if (!ready) {
         return
     }
@@ -160,7 +160,13 @@ class HTMLParsedVMobject:
         self.js_updates.removesuffix("\n")
         if not hasattr(self, "last_t"):
             self.last_t = self.scene.renderer.time
-        js_content = JAVASCRIPT_STRUCTURE % (self.filename_base, self.js_updates, 1000 * self.last_t)
+        js_content = JAVASCRIPT_STRUCTURE % (
+            self.filename_base.lower(),
+            self.filename_base,
+            self.filename_base,
+            self.js_updates,
+            1000 * self.last_t
+        )
         if hasattr(self, "interactive_js"):
             js_content += f"\n{self.interactive_js}"
         with open(self.js_filename, "w") as f:
