@@ -128,16 +128,17 @@ class HTMLParsedVMobject:
                 html_el_creations
             )
         if self.has_updates is False:
-            self.js_updates += "%s\nsleep(%f).then(() => {\nTOREPLACE\n});" % (
+            self.js_updates += "%s\nsleep(%f).then(() => {\n%s\n});" % (
                 html_el_creations,
-                1000 / self.scene.camera.frame_rate,  
+                1000 / self.scene.camera.frame_rate,
+                "%s"
             )
             self.has_updates = True
         else:
             html_el_creations += "\nsleep(%f).then(() => {\nTOREPLACE\n});" % (
                 1000 / self.scene.camera.frame_rate
             )
-            self.js_updates.replace("TOREPLACE", html_el_creations)
+            self.js_updates % html_el_creations
         self.js_updates += "\n"
         self.current_index += 1
         os.remove(svg_filename)
