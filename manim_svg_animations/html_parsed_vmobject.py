@@ -104,7 +104,7 @@ class HTMLParsedVMobject:
         html_el_creations = """if (ready) {
             return
         }
-        %s.replaceChildren();""" % self.filename_base.lower()
+        %s.replaceChildren();\n""" % self.filename_base.lower()
         _, attributes = svg2paths(svg_filename)
         i = 0
         for attr in attributes:
@@ -132,13 +132,12 @@ class HTMLParsedVMobject:
                 html_el_creations,
                 1000 / self.scene.camera.frame_rate,  
             )
-            self.last_update = True
+            self.has_updates = True
         else:
             html_el_creations += "\nsleep(%f).then(() => {\nTOREPLACE\n});" % (
                 1000 / self.scene.camera.frame_rate
             )
             self.js_updates.replace("TOREPLACE", html_el_creations)
-            self.last_update = html_el_creations
         self.js_updates += "\n"
         self.current_index += 1
         os.remove(svg_filename)
