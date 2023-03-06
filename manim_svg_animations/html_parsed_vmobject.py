@@ -31,8 +31,9 @@ var ready = true;
 var %s = document.getElementById("%s");
 function render%s() {
     if (!ready) {
-        return
+        break render%s;
     }
+    render%s:{
     ready = false;
     rendered = false;
 %s
@@ -40,7 +41,7 @@ function render%s() {
         ready = true;
         rendered = true;
     }, %f)
-}"""
+}}"""
 
 
 JAVASCRIPT_UPDATE_STRUCTURE = """    setTimeout(function() {
@@ -166,6 +167,8 @@ class HTMLParsedVMobject:
             self.last_t = self.scene.renderer.time
         js_content = JAVASCRIPT_STRUCTURE % (
             self.filename_base.lower(),
+            self.filename_base,
+            self.filename_base,
             self.filename_base,
             self.filename_base,
             self.js_updates,
