@@ -131,7 +131,7 @@ class HTMLParsedVMobject:
                 self.scene.camera.frame_height,
                 html_el_creations
             )
-        html_el_creations += "\nsleep(%f).then(() => {\n" % 1000 / self.scene.camera.frame_rate
+        html_el_creations += "\nsleep(%f).then(() => {\n" % (1000 / self.scene.camera.frame_rate)
         self.parentheses_to_complete += 1
         self.js_updates += html_el_creations
         self.js_updates += "\n"
