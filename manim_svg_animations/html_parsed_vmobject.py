@@ -21,6 +21,11 @@ HTML_STRUCTURE = """<!DOCTYPE html>
 </html>"""
 
 
+BASIC_HTML_STRUCTURE = """<div>
+    <svg id="%s" width="%s" viewBox="0 0 %d %d" style="background-color:%s;"></svg>
+</div>"""
+
+
 JAVASCRIPT_STRUCTURE = """var rendered = false;
 var ready = true;
 var svg = document.getElementById("%s");
@@ -69,7 +74,7 @@ combsDict[comb]();
 
 
 class HTMLParsedVMobject:
-    def __init__(self, vmobject: VMobject, scene: Scene, width: float = "500px"):
+    def __init__(self, vmobject: VMobject, scene: Scene, width: float = "500px", basic_html=False):
         self.vmobject = vmobject
         self.scene = scene
         self.filename_base = scene.__class__.__name__
@@ -78,6 +83,7 @@ class HTMLParsedVMobject:
         self.current_index = 0
         self.final_html_body = ""
         self.width = width
+        self.basic_html = False
         self.update_html()
         self.js_updates = ""
         self.continue_updating = True
@@ -101,6 +107,7 @@ class HTMLParsedVMobject:
             html_el_creations += html_el_creation
             i += 1
         background_color = color_to_int_rgba(self.scene.camera.background_color, self.scene.camera.background_opacity)
+        background_color[-1] = background_color[-1] / 255
         background_color = [str(par) for par in background_color]
         html_el_creations += f"     svg.style.backgroundColor = 'rgb({', '.join(background_color)})';\n"
         if isinstance(self.scene, MovingCameraScene):
@@ -125,18 +132,28 @@ class HTMLParsedVMobject:
             self.scene.camera.background_color,
             self.scene.camera.background_opacity
         )
+        bg_color[-1] = bg_color[-1] / 255
         bg_color = [str(c) for c in bg_color]
         bg_color = f"rgb({', '.join(bg_color)})"
-        self.html = HTML_STRUCTURE % (
-            self.filename_base,
-            self.filename_base,
-            self.width,
-            self.scene.camera.pixel_width,
-            self.scene.camera.pixel_height,
-            bg_color,
-            self.final_html_body,
-            self.js_filename
-        )
+        if self.basic_html is False:
+            self.html = HTML_STRUCTURE % (
+                self.filename_base,
+                self.filename_base,
+                self.width,
+                self.scene.camera.pixel_width,
+                self.scene.camera.pixel_height,
+                bg_color,
+                self.final_html_body,
+                self.js_filename
+            )
+        else:
+            self.html = BASIC_HTML_STRUCTURE % (
+                self.filename_base,
+                self.width,
+                self.scene.camera.pixel_width,
+                self.scene.camera.pixel_height,
+                bg_color
+            )
     
     def finish(self):
         self.scene.remove_updater(self.updater)
