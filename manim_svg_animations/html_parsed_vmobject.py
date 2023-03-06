@@ -89,11 +89,11 @@ class HTMLParsedVMobject:
         self.width = width
         self.basic_html = basic_html
         self.js_updates = ""
+        self.parentheses_to_complete = 0
         self.continue_updating = True
         self.original_frame_width = self.scene.camera.frame_width
         self.original_frame_height = self.scene.camera.frame_height
         self.interactive_html = ""
-        self.has_updates = False
         self.scene.add_updater(self.updater)
     
     def updater(self, dt):
@@ -101,10 +101,14 @@ class HTMLParsedVMobject:
             return
         svg_filename = self.filename_base + str(self.current_index) + ".svg"
         self.vmobject.to_svg(svg_filename)
+        html_el_creations = "%s.replaceChildren();\n" % self.filename_base.lower()
+        html_el_creations = "%s.replaceChildren();\n" % self.filename_base.lower()
         html_el_creations = """if (ready) {
             return
         }
         %s.replaceChildren();\n""" % self.filename_base.lower()
+        html_el_creations = "%s.replaceChildren();\n" % self.filename_base.lower()
+        html_el_creations = "%s.replaceChildren();\n" % self.filename_base.lower()
         _, attributes = svg2paths(svg_filename)
         i = 0
         for attr in attributes:
@@ -127,19 +131,9 @@ class HTMLParsedVMobject:
                 self.scene.camera.frame_height,
                 html_el_creations
             )
-        if self.has_updates is False:
-            self.js_updates += "%s\nsleep(%f).then(() => {\n%s\n});" % (
-                html_el_creations,
-                1000 / self.scene.camera.frame_rate,
-                "%s"
-            )
-            self.has_updates = True
-        else:
-            html_el_creations += "\nsleep(%f).then(() => {\n%s\n});" % (
-                1000 / self.scene.camera.frame_rate,
-                "%s"
-            )
-            self.js_updates % html_el_creations
+        html_el_creations += "\nsleep(%f).then(() => {\n" % 1000 / self.scene.camera.frame_rate
+        self.parentheses_to_complete += 1
+        self.js_updates += html_el_creations
         self.js_updates += "\n"
         self.current_index += 1
         os.remove(svg_filename)
@@ -196,12 +190,14 @@ class HTMLParsedVMobject:
         self.js_updates.removesuffix("\n")
         if not hasattr(self, "last_t"):
             self.last_t = self.scene.renderer.time
+        for _ in range(self.parentheses_to_complete):
+            self.js_updates += "\n}\n"
         js_content = JAVASCRIPT_STRUCTURE % (
             self.filename_base.lower(),
             self.filename_base,
             self.filename_base,
             1000 / self.scene.camera.frame_rate,
-            self.js_updates % ""
+            self.js_updates
         )
         if hasattr(self, "interactive_js"):
             js_content += f"\n{self.interactive_js}"
