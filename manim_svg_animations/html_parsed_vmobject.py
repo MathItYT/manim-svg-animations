@@ -29,9 +29,13 @@ BASIC_HTML_STRUCTURE = """<div>
 JAVASCRIPT_STRUCTURE = """var rendered = false;
 var ready = true;
 var %s = document.getElementById("%s");
+function render%sWrapper() {
+    ready = true;
+    setTimeout(render%s, %f)
+}
 function render%s() {
     if (!ready) {
-        break render%s;
+        return;
     }
     render%s:{
     ready = false;
@@ -45,6 +49,9 @@ function render%s() {
 
 
 JAVASCRIPT_UPDATE_STRUCTURE = """    setTimeout(function() {
+        if (ready) {
+            break render%s;
+        }
         %s.replaceChildren();
         %s
     }, %f)"""
@@ -124,6 +131,7 @@ class HTMLParsedVMobject:
             arr = [str(p) for p in arr]
             html_el_creations += f"     {self.filename_base.lower()}.setAttribute('viewBox', '{' '.join(arr)}');\n"
         self.js_updates += JAVASCRIPT_UPDATE_STRUCTURE % (
+            self.filename_base,
             self.filename_base.lower(),
             html_el_creations,
             1000 * self.scene.renderer.time
@@ -169,6 +177,8 @@ class HTMLParsedVMobject:
             self.filename_base.lower(),
             self.filename_base,
             self.filename_base,
+            self.filename_base,
+            1000 / self.scene.camera.frame_rate,
             self.filename_base,
             self.filename_base,
             self.js_updates,
