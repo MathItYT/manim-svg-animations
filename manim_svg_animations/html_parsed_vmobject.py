@@ -83,7 +83,7 @@ class HTMLParsedVMobject:
         self.current_index = 0
         self.final_html_body = ""
         self.width = width
-        self.basic_html = False
+        self.basic_html = basic_html
         self.update_html()
         self.js_updates = ""
         self.continue_updating = True
