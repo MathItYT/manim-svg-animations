@@ -135,8 +135,9 @@ class HTMLParsedVMobject:
             )
             self.has_updates = True
         else:
-            html_el_creations += "\nsleep(%f).then(() => {\nTOREPLACE\n});" % (
-                1000 / self.scene.camera.frame_rate
+            html_el_creations += "\nsleep(%f).then(() => {\n%s\n});" % (
+                1000 / self.scene.camera.frame_rate,
+                "%s"
             )
             self.js_updates % html_el_creations
         self.js_updates += "\n"
@@ -200,7 +201,7 @@ class HTMLParsedVMobject:
             self.filename_base,
             self.filename_base,
             1000 / self.scene.camera.frame_rate,
-            self.js_updates
+            self.js_updates % ""
         )
         if hasattr(self, "interactive_js"):
             js_content += f"\n{self.interactive_js}"
